@@ -1,60 +1,36 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Phornpa Go Go! — Home Row Reflex Exergame</title>
-    <style>
-        :root {
-            --primary: #38bdf8;
-            --secondary: #0284c7;
-            --success: #34d399;
-            --danger: #f87171;
-            --bg: #0c4a6e; /* สีฟ้าเข้ม (Deep Blue) */
-            --card-bg: #082f49; /* สีฟ้าเข้มพิเศษสำหรับกล่อง */
-            --text: #4ade80; /* ตัวอักษรหลักเป็นสีเขียวสว่าง (Bright Green) */
-            --text-muted: #93c5fd;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        body {
-            background:
-              radial-gradient(circle at 15% 0%, rgba(56, 189, 248, 0.15), transparent 45%),
-              radial-gradient(circle at 85% 100%, rgba(74, 222, 128, 0.1), transparent 45%),
-              var(--bg);
-            color: var(--text);
-            min-height: 100vh;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: space-between;
-            padding: 20px;
-            overflow-x: hidden;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Home Row Reflex — Typing Exergame</title>
+<style>
+  :root{
+    --bg:#0E1420;
+    --panel:#16202F;
+    --panel-2:#1C2A3D;
+    --line:#263850;
+    --text:#EAF0F6;
+    --muted:#8FA3BC;
+    --mint:#35D0A0;
+    --red:#FF4655;
+    --amber:#FFB020;
+    --font-display: Georgia, 'Times New Roman', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: "Courier New", Courier, monospace;
+  }
   *{box-sizing:border-box;}
-  body {
-          
-            background:
-              radial-gradient(circle at 15% 0%, rgba(53, 208, 160, 0.08), transparent 45%),
-              radial-gradient(circle at 85% 100%, rgba(255, 70, 85, 0.07), transparent 45%),
-              #fef08a
-            color: #1e293b; 
-            min-height: 100vh;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: space-between;
-            padding: 20px;
-            overflow-x: hidden;
-        }
+  body{
+    margin:0; min-height:100vh;
+    background:
+      radial-gradient(circle at 15% 0%, rgba(53,208,160,0.08), transparent 45%),
+      radial-gradient(circle at 85% 100%, rgba(255,70,85,0.07), transparent 45%),
+      var(--bg);
+    color:var(--text);
+    font-family:var(--font-body);
+    display:flex; align-items:center; justify-content:center;
+    padding:32px 16px;
+  }
   .app{width:100%; max-width:760px;}
 
   header{text-align:center; margin-bottom:28px;}

@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Home Row Reflex — Typing Exergame</title>
+<style>
+  :root{
+    --bg:#0E1420;
+    --panel:#16202F;
+    --panel-2:#1C2A3D;
+    --line:#263850;
+    --text:#EAF0F6;
+    --muted:#8FA3BC;
+    --mint:#35D0A0;
+    --red:#FF4655;
+    --amber:#FFB020;
+    --font-display: Georgia, 'Times New Roman', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: "Courier New", Courier, monospace;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; min-height:100vh;
+    background:
+      radial-gradient(circle at 15% 0%, rgba(53,208,160,0.08), transparent 45%),
+      radial-gradient(circle at 85% 100%, rgba(255,70,85,0.07), transparent 45%),
+      var(--bg);
+    color:var(--text);
+    font-family:var(--font-body);
+    display:flex; align-items:center; justify-content:center;
+    padding:32px 16px;
+  }
+  .app{width:100%; max-width:760px;}
+
+  header{text-align:center; margin-bottom:28px;}
+  header .eyebrow{
+    font-family:var(--font-mono); font-size:0.8rem; color:var(--mint);
+    letter-spacing:0.03em;
+  }
+  header h1{
+    font-family:var(--font-display); font-size:clamp(1.8rem,5vw,2.6rem);
+    margin:6px 0 8px;
+  }
+  header p{color:var(--muted); max-width:48ch; margin:0 auto; font-size:0.95rem;}
+
+  .panel{
+    background:var(--panel); border:1px solid var(--line); border-radius:14px;
+    padding:36px 28px;
+  }
+
+  /* START SCREEN */
+  .rules{
+    display:flex; flex-wrap:wrap; gap:8px;
+    margin:22px 0 28px;
+  }
+  .rules .key{
+    flex:1 1 calc(25% - 6px); min-width:56px;
+    background:var(--panel-2); border:1px solid var(--line); border-radius:8px;
+    text-align:center; padding:10px 0; font-family:var(--font-mono); font-size:1.1rem;
+  }
+  .btn{
+    display:block; width:100%; padding:14px; border:none; border-radius:8px;
+    background:var(--mint); color:#06231A; font-weight:700; font-size:1.05rem;
+    font-family:var(--font-body); cursor:pointer;
+  }
+  .btn:hover{filter:brightness(1.08);}
+  .btn.secondary{background:transparent; border:1px solid var(--mint); color:var(--mint);}
+
+  /* GAME SCREEN */
+  .hud{
+    display:flex; justify-content:space-between; align-items:center;
+    font-family:var(--font-mono); font-size:0.85rem; color:var(--muted); margin-bottom:18px;
+  }
+  .hud .round-badge{color:var(--text);}
+  .progress-track{
+    height:6px; background:var(--panel-2); border-radius:3px; overflow:hidden; margin-bottom:32px;
+  }
+  .progress-fill{height:100%; background:var(--mint); width:0%; transition:width 0.3s ease;}
+
+  .stage{
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    min-height:170px; position:relative;
+  }
+  .target-letter{
+    font-family:var(--font-mono); font-size:5.2rem; font-weight:700;
+    width:150px; height:150px; border-radius:20px;
+    display:flex; align-items:center; justify-content:center;
+    background:var(--panel-2); border:2px solid var(--line);
+    color:var(--text); text-transform:lowercase;
+    animation:pulse 1.1s ease-in-out infinite;
+  }
+  .target-letter.correct{ border-color:var(--mint); color:var(--mint); animation:none;}
+  .target-letter.wrong{ border-color:var(--red); animation:shake 0.28s ease;}
+  @keyframes pulse{ 0%,100%{ box-shadow:0 0 0 0 rgba(53,208,160,0.0);} 50%{ box-shadow:0 0 0 10px rgba(53,208,160,0.06);} }
+  @keyframes shake{ 0%,100%{transform:translateX(0);} 25%{transform:translateX(-8px);} 75%{transform:translateX(8px);} }
+  @media (prefers-reduced-motion: reduce){
+    .target-letter{ animation:none; }
+    .target-letter.wrong{ animation:none; }
+  }
+
+  .feedback{ height:26px; margin-top:14px; font-family:var(--font-mono); font-size:0.95rem; color:var(--muted);}
+
+  .keyboard{
+    display:flex; justify-content:center; gap:10px; margin-top:34px; flex-wrap:wrap;
+  }
+  .keyboard .gap{width:22px;}
+  .keycap{
+    width:52px; height:52px; border-radius:8px;
+    background:var(--panel-2); border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center; position:relative;
+    font-family:var(--font-mono); font-size:1.2rem; color:var(--muted);
+    transition:transform 0.08s ease, background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  }
+  .keycap.active{ border-color:var(--mint); color:var(--mint); transform:translateY(-3px);}
+  .keycap.hit-correct{ background:var(--mint); color:#06231A; border-color:var(--mint);}
+  .keycap.hit-wrong{ background:var(--red); color:#2A0509; border-color:var(--red);}
+  .keycap .bump{
+    position:absolute; bottom:6px; width:16px; height:3px; border-radius:2px; background:currentColor; opacity:0.5;
+  }
+
+  /* RESULT SCREEN */
+  .score-hero{ text-align:center; margin-bottom:22px;}
+  .score-hero .score{ font-family:var(--font-display); font-size:4.2rem; color:var(--mint); line-height:1;}
+  .score-hero .score span{ font-size:1.6rem; color:var(--muted);}
+  .grade{ font-size:1.05rem; margin-top:6px; color:var(--text);}
+
+  .stats{
+    display:flex; gap:12px; margin:26px 0; flex-wrap:wrap;
+  }
+  .stats .stat{ flex:1 1 calc(33.333% - 8px); min-width:110px; }
+  .stat{
+    background:var(--panel-2); border:1px solid var(--line); border-radius:10px;
+    padding:14px; text-align:center;
+  }
+  .stat .num{ font-family:var(--font-mono); font-size:1.4rem; color:var(--text);}
+  .stat .label{ font-size:0.78rem; color:var(--muted); margin-top:2px;}
+
+  table{ width:100%; border-collapse:collapse; margin-bottom:26px; font-size:0.88rem;}
+  th,td{ text-align:center; padding:8px 6px; border-bottom:1px solid var(--line); color:var(--muted);}
+  th{ color:var(--text); font-weight:600; font-family:var(--font-mono); font-size:0.78rem;}
+  td.letter{ font-family:var(--font-mono); color:var(--text); text-transform:lowercase;}
+  td.ok{ color:var(--mint);}
+  td.bad{ color:var(--red);}
+
+  .hidden{ display:none; }
+
+  footer{ text-align:center; margin-top:22px; color:var(--muted); font-size:0.8rem;}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="eyebrow">EXERGAMING · REFLEX TRAINING</div>
+    <h1>Home Row Reflex</h1>
+    <p>ฝึกความไวของนิ้วบนแป้นตำแหน่งหลัก (Home Row) — เล่นครบ 10 รอบเพื่อรับคะแนนเต็ม 10</p>
+  </header>
+
+  <div class="panel">
+
+    <!-- START SCREEN -->
+    <div id="screen-start">
+      <p style="color:var(--muted); margin-top:0;">เมื่อตัวอักษรปรากฏขึ้น ให้กดปุ่มนั้นบนคีย์บอร์ดให้เร็วและแม่นยำที่สุด ระบบจะสุ่มตัวอักษรใหม่ทุกรอบจาก 8 ปุ่มนี้:</p>
+      <div class="rules">
+        <div class="key">A</div><div class="key">S</div><div class="key">D</div><div class="key">F</div>
+        <div class="key">J</div><div class="key">K</div><div class="key">L</div><div class="key">;</div>
+      </div>
+      <button class="btn" id="btn-start">เริ่มเกม (10 รอบ)</button>
+    </div>
+
+    <!-- GAME SCREEN -->
+    <div id="screen-game" class="hidden">
+      <div class="hud">
+        <div class="round-badge">รอบที่ <span id="round-num">1</span> / 10</div>
+        <div id="hud-timer">0.00s</div>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+
+      <div class="stage">
+        <div class="target-letter" id="target-letter">a</div>
+        <div class="feedback" id="feedback"></div>
+      </div>
+
+      <div class="keyboard" id="keyboard"></div>
+    </div>
+
+    <!-- RESULT SCREEN -->
+    <div id="screen-result" class="hidden">
+      <div class="score-hero">
+        <div class="score"><span id="final-score">0.0</span><span> / 10</span></div>
+        <div class="grade" id="grade-text"></div>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="num" id="stat-accuracy">0%</div><div class="label">ความแม่นยำ</div></div>
+        <div class="stat"><div class="num" id="stat-avgtime">0ms</div><div class="label">เวลาเฉลี่ย/รอบ</div></div>
+        <div class="stat"><div class="num" id="stat-mistakes">0</div><div class="label">กดผิดรวม</div></div>
+      </div>
+      <table>
+        <thead><tr><th>รอบ</th><th>ตัวอักษร</th><th>เวลา</th><th>ผลลัพธ์</th></tr></thead>
+        <tbody id="result-body"></tbody>
+      </table>
+      <button class="btn secondary" id="btn-restart">เล่นอีกครั้ง</button>
+    </div>
+
+  </div>
+  <footer>ส่วนหนึ่งของโปรเจกต์ Exergaming — ฝึกปฏิกิริยาโต้ตอบผ่านการพิมพ์</footer>
+</div>
+
+<script>
+(function(){
+  const KEYS = ['a','s','d','f','j','k','l',';'];
+  const TOTAL_ROUNDS = 10;
+
+  const screenStart = document.getElementById('screen-start');
+  const screenGame = document.getElementById('screen-game');
+  const screenResult = document.getElementById('screen-result');
+  const targetLetterEl = document.getElementById('target-letter');
+  const feedbackEl = document.getElementById('feedback');
+  const roundNumEl = document.getElementById('round-num');
+  const progressFill = document.getElementById('progress-fill');
+  const hudTimer = document.getElementById('hud-timer');
+  const keyboardEl = document.getElementById('keyboard');
+
+  let currentRound = 0;
+  let currentTarget = null;
+  let roundStartTime = 0;
+  let mistakesThisRound = 0;
+  let waitingForInput = false;
+  let results = [];
+  let timerInterval = null;
+
+  // build virtual keyboard
+  const leftKeys = ['a','s','d','f'];
+  const rightKeys = ['j','k','l',';'];
+  function buildKeyboard(){
+    keyboardEl.innerHTML = '';
+    leftKeys.forEach(k => keyboardEl.appendChild(makeKeycap(k)));
+    const gap = document.createElement('div');
+    gap.className = 'gap';
+    keyboardEl.appendChild(gap);
+    rightKeys.forEach(k => keyboardEl.appendChild(makeKeycap(k)));
+  }
+  function makeKeycap(k){
+    const div = document.createElement('div');
+    div.className = 'keycap';
+    div.dataset.key = k;
+    div.textContent = k.toUpperCase();
+    if(k === 'f' || k === 'j'){
+      const bump = document.createElement('div');
+      bump.className = 'bump';
+      div.appendChild(bump);
+    }
+    return div;
+  }
+  function getKeycap(k){ return keyboardEl.querySelector('.keycap[data-key="'+k+'"]'); }
+  buildKeyboard(); // render keyboard immediately so it's visible even before Start is pressed
+
+  function randomKeyExcluding(exclude){
+    let pool = KEYS.filter(k => k !== exclude);
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  function startGame(){
+    currentRound = 0;
+    results = [];
+    screenStart.classList.add('hidden');
+    screenResult.classList.add('hidden');
+    screenGame.classList.remove('hidden');
+    buildKeyboard();
+    nextRound();
+  }
+
+  function nextRound(){
+    currentRound++;
+    if(currentRound > TOTAL_ROUNDS){
+      finishGame();
+      return;
+    }
+    roundNumEl.textContent = currentRound;
+    progressFill.style.width = ((currentRound - 1) / TOTAL_ROUNDS * 100) + '%';
+    feedbackEl.textContent = '';
+    mistakesThisRound = 0;
+
+    currentTarget = randomKeyExcluding(currentTarget);
+    targetLetterEl.textContent = currentTarget;
+    targetLetterEl.classList.remove('correct','wrong');
+    document.querySelectorAll('.keycap').forEach(el => el.classList.remove('active','hit-correct','hit-wrong'));
+    const activeCap = getKeycap(currentTarget);
+    if(activeCap) activeCap.classList.add('active');
+
+    roundStartTime = performance.now();
+    waitingForInput = true;
+
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+      const elapsed = (performance.now() - roundStartTime) / 1000;
+      hudTimer.textContent = elapsed.toFixed(2) + 's';
+    }, 50);
+  }
+
+  function handleKey(rawKey){
+    if(!waitingForInput) return;
+    const key = rawKey.toLowerCase();
+    if(KEYS.indexOf(key) === -1) return; // ignore keys outside the valid set
+
+    const cap = getKeycap(key);
+
+    if(key === currentTarget){
+      waitingForInput = false;
+      clearInterval(timerInterval);
+      const timeMs = performance.now() - roundStartTime;
+      targetLetterEl.classList.add('correct');
+      if(cap) cap.classList.add('hit-correct');
+      feedbackEl.textContent = 'ถูกต้อง! ใช้เวลา ' + (timeMs/1000).toFixed(2) + ' วินาที' + (mistakesThisRound > 0 ? ' (กดผิด ' + mistakesThisRound + ' ครั้ง)' : '');
+      results.push({ letter: currentTarget, timeMs: timeMs, mistakes: mistakesThisRound });
+      setTimeout(nextRound, 650);
+    } else {
+      mistakesThisRound++;
+      if(cap){
+        cap.classList.add('hit-wrong');
+        setTimeout(() => cap.classList.remove('hit-wrong'), 200);
+      }
+      targetLetterEl.classList.add('wrong');
+      setTimeout(() => targetLetterEl.classList.remove('wrong'), 220);
+      feedbackEl.textContent = 'ยังไม่ใช่ ลองอีกครั้ง';
+    }
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if(e.repeat) return;
+    handleKey(e.key);
+  });
+
+  function computeRoundScore(mistakes, timeMs){
+    let accuracyScore;
+    if(mistakes === 0) accuracyScore = 0.6;
+    else if(mistakes === 1) accuracyScore = 0.3;
+    else accuracyScore = 0;
+
+    const clamped = Math.min(Math.max(timeMs, 300), 3000);
+    const speedScore = 0.4 * (1 - (clamped - 300) / (3000 - 300));
+    return accuracyScore + speedScore;
+  }
+
+  function gradeFor(score){
+    if(score >= 9) return 'ยอดเยี่ยม! นิ้วไวมาก 🔥';
+    if(score >= 7) return 'ดีมาก ฝึกต่ออีกนิดเดียว';
+    if(score >= 5) return 'พอใช้ได้ ลองอีกครั้งเพื่อทำเวลาให้ดีขึ้น';
+    return 'ต้องฝึกเพิ่มอีกหน่อย สู้ๆ!';
+  }
+
+  function finishGame(){
+    clearInterval(timerInterval);
+    progressFill.style.width = '100%';
+    screenGame.classList.add('hidden');
+    screenResult.classList.remove('hidden');
+
+    let totalScore = 0;
+    let totalMistakes = 0;
+    let cleanRounds = 0;
+    let totalTime = 0;
+    const tbody = document.getElementById('result-body');
+    tbody.innerHTML = '';
+
+    results.forEach((r, i) => {
+      const roundScore = computeRoundScore(r.mistakes, r.timeMs);
+      totalScore += roundScore;
+      totalMistakes += r.mistakes;
+      totalTime += r.timeMs;
+      if(r.mistakes === 0) cleanRounds++;
+
+      const tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td>' + (i+1) + '</td>' +
+        '<td class="letter">' + r.letter + '</td>' +
+        '<td>' + (r.timeMs/1000).toFixed(2) + 's</td>' +
+        '<td class="' + (r.mistakes === 0 ? 'ok' : 'bad') + '">' + (r.mistakes === 0 ? 'สมบูรณ์' : r.mistakes + ' ผิด') + '</td>';
+      tbody.appendChild(tr);
+    });
+
+    const finalScore = Math.round((totalScore) * 10) / 10; // one decimal, max ~10
+    document.getElementById('final-score').textContent = finalScore.toFixed(1);
+    document.getElementById('grade-text').textContent = gradeFor(finalScore);
+    document.getElementById('stat-accuracy').textContent = Math.round((cleanRounds / TOTAL_ROUNDS) * 100) + '%';
+    document.getElementById('stat-avgtime').textContent = Math.round(totalTime / TOTAL_ROUNDS) + 'ms';
+    document.getElementById('stat-mistakes').textContent = totalMistakes;
+  }
+
+  document.getElementById('btn-start').addEventListener('click', startGame);
+  document.getElementById('btn-restart').addEventListener('click', () => {
+    screenResult.classList.add('hidden');
+    screenStart.classList.remove('hidden');
+  });
+})();
+</script>
+</body>
+</html>
